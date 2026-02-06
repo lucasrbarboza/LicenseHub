@@ -114,6 +114,7 @@ php -S localhost:8000 -t public/
 - ✅ O instalador agora garante que o banco de dados exista e possa ser usado antes de importar `database.sql` (criação automática se necessário).
 - ✅ Validações adicionadas: existência do arquivo SQL, verificação de retorno em comandos, mensagens de erro mais claras.
 - ✅ Composer é tratado como **opcional**: verificado antes, tentado se disponível, mas não interrompe a instalação em caso de falha.
+- ✅ Autenticação da API adicionada: configurável no instalador, obrigatória em `production` (token automático gerado se não informado); em `homologation` a autenticação é desabilitada para facilitar testes.
 - ✅ Recomendação de segurança: remova a pasta `scripts/` após a instalação.
 
 #### 📦 Componentes do Projeto (atualizado)

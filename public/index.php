@@ -112,6 +112,10 @@ register_shutdown_function(function () {
 // Carrega rotas
 try {
     $router = require_once dirname(__DIR__) . '/routes/api.php';
+
+    // Verifica autenticação (se aplicável) antes de despachar a rota
+    \App\Core\Auth::check();
+
     $router->dispatch();
 } catch (\Exception $e) {
     http_response_code(500);

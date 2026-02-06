@@ -43,9 +43,11 @@ php -S localhost:8000 -t public/
 # Abra no navegador:
 # http://localhost:8000/scripts/install.php
 # Siga o formulário: o instalador verificará/usar/criará o banco de dados e importará `database.sql`.
+# No formulário você poderá definir o ambiente (development, homologation, production) e configurar o token da API.
+# Em `production` a autenticação da API é obrigatória; será gerado um token automaticamente caso você não informe um.
+# Em `homologation` a autenticação é desabilitada (útil para testes).
 # Após a conclusão, por segurança, remova a pasta `scripts/` do servidor.
 ```
-
 **(Alternativa) 4b. Criar o banco manualmente (opcional):**
 ```bash
 # Abra o MySQL

@@ -48,7 +48,10 @@ if ($wasSubmitted) {
     $dbName = $_POST["db_name"] ?? "licensehub";
     $clearDb = isset($_POST["clear_db"]);
 
-    try {
+        // Ambiente e autenticação da API
+        $appEnv = $_POST["app_env"] ?? "development"; // development | homologation | production
+        $apiAuthEnabled = isset($_POST["api_auth_enabled"]);
+        $apiAuthToken = trim($_POST["api_auth_token"] ?? "");
         $msgArr = [];
         // Criar arquivo .env
         if (!file_exists($envPath)) {
@@ -68,6 +71,25 @@ if ($wasSubmitted) {
         $envContent = setEnvValue($envContent, "DB_USER", $dbUser);
         $envContent = setEnvValue($envContent, "DB_PASSWORD", $dbPassword);
         $envContent = setEnvValue($envContent, "DB_NAME", $dbName);
+
+        // Definir ambiente e configurações de autenticação
+        $envContent = setEnvValue($envContent, "APP_ENV", $appEnv);
+
+        // Se em production, a autenticação é obrigatória
+        if ($appEnv === 'production') {
+            $apiAuthEnabled = true;
+            if ($apiAuthToken === '') {
+                // Gera token seguro automaticamente
+                $apiAuthToken = bin2hex(random_bytes(16));
+                $msgArr[] = "Token da API gerado automaticamente: <code>$apiAuthToken</code> (salve em local seguro).";
+            }
+        }
+
+        $envContent = setEnvValue($envContent, "API_AUTH_ENABLED", $apiAuthEnabled ? 'true' : 'false');
+        if ($apiAuthToken !== '') {
+            $envContent = setEnvValue($envContent, "API_AUTH_TOKEN", $apiAuthToken);
+        }
+
         file_put_contents($envPath, $envContent);
         $msgArr[] = "Arquivo .env atualizado com sucesso.";
 
@@ -274,6 +296,26 @@ if ($wasSubmitted) {
                 <div class="form-group">
                     <label for="db_name">Nome do Banco de Dados:</label>
                     <input type="text" id="db_name" name="db_name" value="licensehub" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="app_env">Ambiente:</label>
+                    <select id="app_env" name="app_env">
+                        <option value="development">development</option>
+                        <option value="homologation">homologation</option>
+                        <option value="production">production</option>
+                    </select>
+                    <small>Escolha <code>production</code> para ativar autenticação obrigatória.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="api_auth_token">Token de Autenticação da API (opcional):</label>
+                    <input type="text" id="api_auth_token" name="api_auth_token" placeholder="Deixe vazio para gerar um token automático em production">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="api_auth_enabled" name="api_auth_enabled" checked>
+                    <label for="api_auth_enabled">Habilitar autenticação da API (obrigatório em production)</label>
                 </div>
 
                 <div class="checkbox-group">

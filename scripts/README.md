@@ -32,3 +32,15 @@ http://localhost:8000/scripts/install.php
 4. Ao finalizar, siga as recomendações de segurança (remover `scripts/`).
 
 Se preferir instalar manualmente, siga os passos do `docs/SETUP_GUIDE.md` (criação de DB e importação via MySQL CLI).
+
+Autenticação da API
+
+- Em `production` a autenticação é obrigatória. O token pode ser informado no instalador ou gerado automaticamente no momento da instalação.
+- Em `homologation` a autenticação é desabilitada para facilitar testes.
+
+Como enviar o token nas requisições:
+
+- Header Bearer: `Authorization: Bearer <token>`
+- Header alternativo: `X-API-KEY: <token>`
+- Query string (teste): `?api_key=<token>`
+
