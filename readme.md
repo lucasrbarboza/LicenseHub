@@ -106,6 +106,16 @@ php -S localhost:8000 -t public/
 
 ## 📋 Changelog
 
+### [2026-02-05] - v1.2.0 Authentication & Installer update
+
+#### ✨ Segurança & Instalação
+- ✅ Autenticação da API adicionada e integrada ao runtime (`public/index.php` chama `App\\Core\\Auth::check()`).
+- ✅ Em **production** a autenticação é **obrigatória**; em **development** a autenticação é opcional e controlada por `API_AUTH_ENABLED`.
+- ✅ Token gerado automaticamente em `production` quando não informado; o token será **exibido ao final da instalação** com instrução para guardar com segurança.
+- ✅ Instalador atualizado: verificação/criação/uso do banco, validação de `database.sql`, mensagens e verificação de retorno de comandos.
+- ✅ Composer permanece **opcional** (executado se disponível; falha não interrompe a instalação).
+- ✅ Ambientes reduzidos para **development** e **production** (removida referência a homologation).
+
 ### [2026-02-05] - v1.1.0 Complete
 
 #### ✨ Instalação consolidada
@@ -114,7 +124,7 @@ php -S localhost:8000 -t public/
 - ✅ O instalador agora garante que o banco de dados exista e possa ser usado antes de importar `database.sql` (criação automática se necessário).
 - ✅ Validações adicionadas: existência do arquivo SQL, verificação de retorno em comandos, mensagens de erro mais claras.
 - ✅ Composer é tratado como **opcional**: verificado antes, tentado se disponível, mas não interrompe a instalação em caso de falha.
-- ✅ Autenticação da API adicionada: configurável no instalador, obrigatória em `production` (token automático gerado se não informado); em `homologation` a autenticação é desabilitada para facilitar testes.
+- ✅ Autenticação da API adicionada: configurável no instalador, obrigatória em `production` (token automático gerado se não informado; o token será exibido ao final da instalação); em `development` a autenticação é opcional.
 - ✅ Recomendação de segurança: remova a pasta `scripts/` após a instalação.
 
 #### 📦 Componentes do Projeto (atualizado)

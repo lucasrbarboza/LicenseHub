@@ -8,17 +8,12 @@ class Auth
 {
     /**
      * Retorna se a autenticação é necessária para as requisições.
-     * - Em `homologation` não é necessária
      * - Em `production` é obrigatória
-     * - Em outros ambientes respeita `API_AUTH_ENABLED`
+     * - Em `development` respeita `API_AUTH_ENABLED` (padrão: false)
      */
     public static function isRequired(): bool
     {
         $env = Config::get('APP_ENV', 'development');
-
-        if ($env === 'homologation') {
-            return false;
-        }
 
         if ($env === 'production') {
             return true;

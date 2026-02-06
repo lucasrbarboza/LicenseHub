@@ -48,10 +48,12 @@ if ($wasSubmitted) {
     $dbName = $_POST["db_name"] ?? "licensehub";
     $clearDb = isset($_POST["clear_db"]);
 
+        try {
         // Ambiente e autenticação da API
-        $appEnv = $_POST["app_env"] ?? "development"; // development | homologation | production
+        $appEnv = $_POST["app_env"] ?? "development"; // development | production
         $apiAuthEnabled = isset($_POST["api_auth_enabled"]);
         $apiAuthToken = trim($_POST["api_auth_token"] ?? "");
+        $tokenGenerated = false;
         $msgArr = [];
         // Criar arquivo .env
         if (!file_exists($envPath)) {
@@ -81,7 +83,8 @@ if ($wasSubmitted) {
             if ($apiAuthToken === '') {
                 // Gera token seguro automaticamente
                 $apiAuthToken = bin2hex(random_bytes(16));
-                $msgArr[] = "Token da API gerado automaticamente: <code>$apiAuthToken</code> (salve em local seguro).";
+                $tokenGenerated = true;
+                $msgArr[] = "Token da API gerado automaticamente.";
             }
         }
 
@@ -161,6 +164,12 @@ if ($wasSubmitted) {
 
         $success = true;
         $msgArr[] = "<strong>Instalação concluída com sucesso!</strong>";
+
+        // Se um token foi gerado automaticamente, informe-o ao final de forma destacada
+        if ($tokenGenerated) {
+            $msgArr[] = "<div class=\"warning\"><strong>Token da API gerado:</strong> <code>$apiAuthToken</code><br>Guarde este token em local seguro — ele não será exibido novamente.</div>";
+        }
+
         $msgArr[] = "<div style=\"background-color: #fff3cd; color: #856404; padding: 10px; margin: 10px 0; border-radius: 5px;\"><strong>ATENÇÃO:</strong> Por segurança, remova a pasta <code>scripts/</code> após a instalação.<br>Esta pasta contém ferramentas de instalação que não devem permanecer no servidor de produção.</div>";
         $msgArr[] = "Próximos passos:";
         $msgArr[] = "1. Inicie o servidor PHP: php -S localhost:8000 -t public/";
@@ -302,7 +311,6 @@ if ($wasSubmitted) {
                     <label for="app_env">Ambiente:</label>
                     <select id="app_env" name="app_env">
                         <option value="development">development</option>
-                        <option value="homologation">homologation</option>
                         <option value="production">production</option>
                     </select>
                     <small>Escolha <code>production</code> para ativar autenticação obrigatória.</small>
@@ -314,7 +322,7 @@ if ($wasSubmitted) {
                 </div>
 
                 <div class="checkbox-group">
-                    <input type="checkbox" id="api_auth_enabled" name="api_auth_enabled" checked>
+                    <input type="checkbox" id="api_auth_enabled" name="api_auth_enabled">
                     <label for="api_auth_enabled">Habilitar autenticação da API (obrigatório em production)</label>
                 </div>
 
