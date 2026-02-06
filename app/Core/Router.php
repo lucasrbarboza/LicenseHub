@@ -72,11 +72,25 @@ class Router
 
     /**
      * Converte um path com parâmetros para regex
+     *
+     * Garante escape de caracteres e usa delimitador seguro (#) para evitar
+     * erros de 'Unknown modifier' quando o path contém '/'.
      */
     private function pathToRegex(string $path): string
     {
-        $pattern = preg_replace('/{([^}]+)}/', '(?P<$1>[0-9]+)', $path);
-        return '^' . $pattern . '$';
+        // Substitui temporariamente parâmetros por tokens para não escapá-los
+        $tokened = preg_replace_callback('/\{([^}]+)\}/', function ($m) {
+            return '§§' . $m[1] . '§§';
+        }, $path);
+
+        // Escapa o restante do path
+        $escaped = preg_quote($tokened, '#');
+
+        // Restaura tokens para named groups (aceitando números por padrão)
+        $pattern = preg_replace('/§§([^§]+)§§/', '(?P<$1>[0-9]+)', $escaped);
+
+        // Retorna o regex completo com delimitadores e flag unicode
+        return '#^' . $pattern . '$#u';
     }
 
     /**
@@ -88,8 +102,9 @@ class Router
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         foreach ($this->routes as $route) {
-            if ($route['method'] === $method && preg_match('/' . $route['pattern'] . '/', $path, $matches)) {
-                return $this->executeRoute($route, $matches);
+            if ($route['method'] === $method && preg_match($route['pattern'], $path, $matches)) {
+                $this->executeRoute($route, $matches);
+                return;
             }
         }
 
