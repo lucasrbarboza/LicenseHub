@@ -91,21 +91,32 @@ Separação recomendada por:
 ```bash
 git clone https://github.com/seu-usuario/licensehub.git
 cd licensehub
+# Inicie o servidor embutido do PHP (recomendado para testes locais):
+php -S localhost:8000 -t public/
+# Abra no navegador:
+# http://localhost:8000/scripts/install.php
+# Siga o formulário de instalação. Após a conclusão remova a pasta `scripts/` por segurança.
+
+# Alternativa (quando servido por um servidor web):
+# coloque o projeto no document root e acesse /scripts/install.php
 ```
 
+> Observação: o instalador verifica/usa/cria o banco de dados e valida o arquivo `database.sql`. O Composer é opcional e será tentado automaticamente se estiver disponível (não interromperá a instalação se falhar).
 ---
 
 ## 📋 Changelog
 
-### [2026-02-05] - v1.0.0 Complete
+### [2026-02-05] - v1.1.0 Complete
 
-#### ✨ Estrutura Finalizada
-- ✅ Organização em pastas lógicas (docs/, scripts/)
-- ✅ Arquivo de navegação (ESTRUTURA.md) criado
-- ✅ Documentação indexada (docs/INDEX.md)
-- ✅ Guia de scripts de instalação (scripts/README.md)
+#### ✨ Instalação consolidada
+- ✅ Removido: `scripts/install.sh` e `scripts/install.bat`.
+- ✅ Novo: `scripts/install.php` — instalador web em PHP com interface de formulário.
+- ✅ O instalador agora garante que o banco de dados exista e possa ser usado antes de importar `database.sql` (criação automática se necessário).
+- ✅ Validações adicionadas: existência do arquivo SQL, verificação de retorno em comandos, mensagens de erro mais claras.
+- ✅ Composer é tratado como **opcional**: verificado antes, tentado se disponível, mas não interrompe a instalação em caso de falha.
+- ✅ Recomendação de segurança: remova a pasta `scripts/` após a instalação.
 
-#### 📦 Componentes do Projeto
+#### 📦 Componentes do Projeto (atualizado)
 
 **Código-fonte (42 arquivos total)**
 - ✅ 4 classes base (Model, Controller, Router, Response)
@@ -149,9 +160,8 @@ cd licensehub
 - ✅ docs/RESUMO_EXECUTIVO.md - Resumo em português
 
 **Automação**
-- ✅ scripts/install.sh (Linux/Mac)
-- ✅ scripts/install.bat (Windows)
-- ✅ scripts/README.md - Guia de uso dos scripts
+- ✅ scripts/install.php - Instalador web em PHP (formulário)
+- ✅ scripts/README.md - Guia de uso do instalador
 
 **Gerenciamento**
 - ✅ composer.json com autoloading PSR-4
@@ -165,8 +175,8 @@ cd licensehub
 
 | Data | Versão | Fase | Deliverables |
 |------|--------|------|--------------|
+| 2026-02-05 | v1.1.0 | **Instalação** | Instalador consolidado em `scripts/install.php` (PHP web installer) |
 | 2026-02-05 | v1.0.0 | **Finalização** | Estrutura de pastas, Navegação, Changelog |
-| 2026-02-04 | v1.0.0 | **Instalação** | Scripts install.sh e install.bat |
 | 2026-02-04 | v0.9.0 | **Documentação** | 10 arquivos MD com 1500+ linhas |
 | 2026-02-03 | v0.8.0 | **Roteamento** | 80+ endpoints REST implementados |
 | 2026-02-03 | v0.7.0 | **Controllers** | 9 controllers com CRUD completo |
@@ -201,8 +211,8 @@ Documentação:
   • Exemplos de API: 50+
 
 Automação:
-  • Scripts: 2 (Linux/Mac, Windows)
-  • Linhas de script: 200+
+  • Scripts: 1 (PHP web installer)
+  • Linhas de script: 120+
 
 Arquivos Totais: 42
 Pastas: 6 principais + docs/ + scripts/
@@ -222,7 +232,7 @@ Pastas: 6 principais + docs/ + scripts/
 | Validação | ✅ Implementada | Campos obrigatórios, tipos |
 | Paginação | ✅ Implementada | Max 100 itens/página |
 | Documentação | ✅ Completa | 10 arquivos, exemplos |
-| Instalação | ✅ Automatizada | 2 scripts plataforma |
+| Instalação | ✅ Automatizada | Instalador PHP (`scripts/install.php`) |
 | Autenticação JWT | ⏳ Planejado | Próxima release |
 | Rate Limiting | ⏳ Planejado | Próxima release |
 | Logging Estruturado | ⏳ Planejado | Próxima release |

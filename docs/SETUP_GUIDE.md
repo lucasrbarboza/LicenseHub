@@ -5,7 +5,7 @@
 ### Pré-requisitos
 - PHP 8.0 ou superior
 - MySQL 8.0 ou superior
-- Composer
+- Composer (opcional — o instalador web tentará usá-lo se disponível)
 
 ### Passos
 
@@ -29,12 +29,24 @@ APP_URL=http://localhost:8000
 JWT_SECRET=uma_chave_muito_secreta_aqui_no_minimo_32_caracteres
 ```
 
-**3. Instalar dependências PHP:**
+**3. Instalar dependências PHP (opcional):**
 ```bash
+# Se preferir instalar manualmente:
 composer install
+# Observação: o instalador web tentará executar o Composer automaticamente se estiver disponível, mas não interromperá a instalação em caso de falha.
 ```
 
-**4. Criar o banco de dados:**
+**4. Usar o instalador web (recomendado):**
+```bash
+# Inicie o servidor embutido do PHP (para testes locais):
+php -S localhost:8000 -t public/
+# Abra no navegador:
+# http://localhost:8000/scripts/install.php
+# Siga o formulário: o instalador verificará/usar/criará o banco de dados e importará `database.sql`.
+# Após a conclusão, por segurança, remova a pasta `scripts/` do servidor.
+```
+
+**(Alternativa) 4b. Criar o banco manualmente (opcional):**
 ```bash
 # Abra o MySQL
 mysql -u root -p
@@ -48,7 +60,7 @@ source database.sql;
 SHOW TABLES;
 ```
 
-**5. Inicie o servidor:**
+**5. Inicie o servidor (se não iniciou anteriormente):**
 ```bash
 php -S localhost:8000 -t public/
 ```
