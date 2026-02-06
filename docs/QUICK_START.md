@@ -30,9 +30,12 @@ php -S localhost:8000 -t public/
 # Em outro terminal, teste:
 
 # Health Check
+# Se estiver em production, inclua o token de API (Authorization header):
+# curl -H "Authorization: Bearer <TOKEN>" http://localhost:8000/health
 curl http://localhost:8000/health
 
 # Listar clientes (vazio no início)
+# Em production: curl -H "Authorization: Bearer <TOKEN>" http://localhost:8000/clientes
 curl http://localhost:8000/clientes
 ```
 

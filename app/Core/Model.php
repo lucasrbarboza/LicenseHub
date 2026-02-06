@@ -8,7 +8,7 @@ use PDOException;
 
 abstract class Model
 {
-    protected PDO $db;
+    protected $db;
     protected string $table;
     protected array $fillable = [];
     protected array $hidden = [];
@@ -26,12 +26,13 @@ abstract class Model
         try {
             $query = "SELECT * FROM {$this->table} LIMIT :limit OFFSET :offset";
             $stmt = $this->db->prepare($query);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            // bindValue supports PDO::PARAM_INT but our mysqli adapter ignores type
+            $stmt->bindValue(':limit', $limit, defined('PDO::PARAM_INT') ? PDO::PARAM_INT : null);
+            $stmt->bindValue(':offset', $offset, defined('PDO::PARAM_INT') ? PDO::PARAM_INT : null);
             $stmt->execute();
             return $stmt->fetchAll();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao buscar registros: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao buscar registros: " . $e->getMessage());
         }
     }
 
@@ -47,8 +48,8 @@ abstract class Model
             $stmt->execute();
             $result = $stmt->fetch();
             return $result ?: null;
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao buscar registro: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao buscar registro: " . $e->getMessage());
         }
     }
 
@@ -83,8 +84,8 @@ abstract class Model
             $stmt->execute();
 
             return $stmt->fetchAll();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao buscar registros com filtros: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao buscar registros com filtros: " . $e->getMessage());
         }
     }
 
@@ -110,8 +111,8 @@ abstract class Model
 
             $stmt->execute();
             return (int)$this->db->lastInsertId();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao criar registro: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao criar registro: " . $e->getMessage());
         }
     }
 
@@ -140,8 +141,8 @@ abstract class Model
             }
 
             return $stmt->execute();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao atualizar registro: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao atualizar registro: " . $e->getMessage());
         }
     }
 
@@ -155,8 +156,8 @@ abstract class Model
             $stmt = $this->db->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             return $stmt->execute();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao deletar registro: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao deletar registro: " . $e->getMessage());
         }
     }
 
@@ -185,8 +186,8 @@ abstract class Model
             $stmt->execute();
             $result = $stmt->fetch();
             return (int)($result['total'] ?? 0);
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao contar registros: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao contar registros: " . $e->getMessage());
         }
     }
 
@@ -214,8 +215,8 @@ abstract class Model
             }
             $stmt->execute();
             return $stmt->fetchAll();
-        } catch (PDOException $e) {
-            throw new PDOException("Erro ao executar query: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception("Erro ao executar query: " . $e->getMessage());
         }
     }
 
@@ -240,6 +241,11 @@ abstract class Model
      */
     protected function rollback(): void
     {
-        $this->db->rollBack();
+        // Mysqli adapter uses rollback(), PDO uses rollBack()
+        if (method_exists($this->db, 'rollBack')) {
+            $this->db->rollBack();
+        } else {
+            $this->db->rollBack();
+        }
     }
 }
