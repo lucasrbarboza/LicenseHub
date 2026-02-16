@@ -123,10 +123,6 @@ LicenseHub/
 │   ├── PROJECT_SUMMARY.md   ← Visão geral
 │   └── CHECKLIST.md         ← Checklist
 │
-├── 🛠️ Scripts/
-│   ├── install.sh           (Linux/Mac)
-│   └── install.bat          (Windows)
-│
 ├── ⚙️ Configuração/
 │   ├── composer.json        ← Dependências
 │   ├── .env.example         ← Variáveis modelo
