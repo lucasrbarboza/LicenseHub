@@ -1,0 +1,39 @@
+[2026-02-06T16:32:10+00:00] Erro conectar DB: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+Drivers: mysql
+Env: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root","APP_ENV":"production"}
+Trace: #0 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(60): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(22): Config\Database::createConnection()
+#2 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Model.php(18): Config\Database::getConnection()
+#3 C:\Programas\UniServerZ\www\LicenseHub\app\Controllers\ClienteController.php(16): App\Core\Model->__construct()
+#4 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(126): App\Controllers\ClienteController->__construct()
+#5 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(106): App\Core\Router->executeRoute(Array, Array)
+#6 C:\Programas\UniServerZ\www\LicenseHub\public\index.php(119): App\Core\Router->dispatch()
+#7 {main}
+
+[2026-02-06T16:32:36+00:00] Erro conectar DB: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+Drivers: mysql
+Env: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root","APP_ENV":"production"}
+Trace: #0 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(60): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(22): Config\Database::createConnection()
+#2 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Model.php(18): Config\Database::getConnection()
+#3 C:\Programas\UniServerZ\www\LicenseHub\app\Controllers\ClienteController.php(16): App\Core\Model->__construct()
+#4 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(126): App\Controllers\ClienteController->__construct()
+#5 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(106): App\Core\Router->executeRoute(Array, Array)
+#6 C:\Programas\UniServerZ\www\LicenseHub\public\index.php(119): App\Core\Router->dispatch()
+#7 {main}
+
+[2026-02-06T16:32:52+00:00] Erro conectar DB: SQLSTATE[HY000] [2002] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+Drivers: mysql
+Env: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root","APP_ENV":"production"}
+Trace: #0 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(60): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Programas\UniServerZ\www\LicenseHub\config\Database.php(22): Config\Database::createConnection()
+#2 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Model.php(18): Config\Database::getConnection()
+#3 C:\Programas\UniServerZ\www\LicenseHub\app\Controllers\ClienteController.php(16): App\Core\Model->__construct()
+#4 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(126): App\Controllers\ClienteController->__construct()
+#5 C:\Programas\UniServerZ\www\LicenseHub\app\Core\Router.php(106): App\Core\Router->executeRoute(Array, Array)
+#6 C:\Programas\UniServerZ\www\LicenseHub\public\index.php(119): App\Core\Router->dispatch()
+#7 {main}
+

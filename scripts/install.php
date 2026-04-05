@@ -1,189 +1,142 @@
 <?php
 declare(strict_types=1);
 
-// Configurações iniciais
 $root = dirname(__DIR__);
-$envPath = $root . DIRECTORY_SEPARATOR . ".env";
-$envExamplePath = $root . DIRECTORY_SEPARATOR . ".env.example";
-$sqlPath = __DIR__ . DIRECTORY_SEPARATOR . "database.sql";
+$envPath = $root . DIRECTORY_SEPARATOR . '.env';
+$envExamplePath = $root . DIRECTORY_SEPARATOR . '.env.example';
+$sqlPath = __DIR__ . DIRECTORY_SEPARATOR . 'database.sql';
 
-// Funções auxiliares
-function envQuote(string $value): string
+function env_quote(string $value): string
 {
-    if ($value === "") {
-        return "";
+    if ($value === '') {
+        return '';
     }
 
-    if (preg_match("/[\s#\"\\\\]/", $value)) {
-        $escaped = str_replace(["\\", "\""], ["\\\\", "\\\""], $value);
-        return "\"" . $escaped . "\"";
+    if (preg_match('/[\s#"\\\\]/', $value)) {
+        $escaped = str_replace(["\\", '"'], ["\\\\", '\\"'], $value);
+        return '"' . $escaped . '"';
     }
 
     return $value;
 }
 
-function setEnvValue(string $content, string $key, string $value): string
+function set_env_value(string $content, string $key, string $value): string
 {
-    $quoted = envQuote($value);
-    $pattern = "/^" . preg_quote($key, "/") . "=.*/m";
+    $quoted = env_quote($value);
+    $pattern = '/^' . preg_quote($key, '/') . '=.*/m';
 
     if (preg_match($pattern, $content)) {
-        return preg_replace($pattern, $key . "=" . $quoted, $content);
+        return (string) preg_replace($pattern, $key . '=' . $quoted, $content);
     }
 
-    $separator = str_ends_with($content, "\n") ? "" : "\n";
-    return $content . $separator . $key . "=" . $quoted . "\n";
+    $separator = str_ends_with($content, "\n") ? '' : "\n";
+    return $content . $separator . $key . '=' . $quoted . "\n";
 }
 
-// Verificar se o formulário foi submetido
+function import_sql(PDO $pdo, string $sqlPath): void
+{
+    $sql = file_get_contents($sqlPath);
+    if ($sql === false) {
+        throw new RuntimeException('Falha ao ler o arquivo database.sql.');
+    }
+
+    $sql = preg_replace('/^\s*--.*$/m', '', $sql);
+    $statements = preg_split('/;\s*(\r?\n|$)/', (string) $sql);
+
+    foreach ($statements as $statement) {
+        $statement = trim($statement);
+        if ($statement === '') {
+            continue;
+        }
+
+        $pdo->exec($statement);
+    }
+}
 
 $message = null;
 $success = false;
-$wasSubmitted = ($_SERVER["REQUEST_METHOD"] === "POST");
+$wasSubmitted = ($_SERVER['REQUEST_METHOD'] === 'POST');
 
 if ($wasSubmitted) {
-    $dbHost = $_POST["db_host"] ?? "localhost";
-    $dbUser = $_POST["db_user"] ?? "root";
-    $dbPassword = $_POST["db_password"] ?? "";
-    $dbName = $_POST["db_name"] ?? "licensehub";
-    $clearDb = isset($_POST["clear_db"]);
+    $dbHost = trim($_POST['db_host'] ?? 'localhost');
+    $dbPort = trim($_POST['db_port'] ?? '3306');
+    $dbUser = trim($_POST['db_user'] ?? 'root');
+    $dbPassword = $_POST['db_password'] ?? '';
+    $dbName = trim($_POST['db_name'] ?? 'licensehub');
+    $clearDb = isset($_POST['clear_db']);
 
-        try {
-        // Ambiente e autenticação da API
-        $appEnv = $_POST["app_env"] ?? "development"; // development | production
-        $apiAuthEnabled = isset($_POST["api_auth_enabled"]);
-        $apiAuthToken = trim($_POST["api_auth_token"] ?? "");
-        $tokenGenerated = false;
-        $msgArr = [];
-        // Criar arquivo .env
+    try {
+        $messages = [];
+
         if (!file_exists($envPath)) {
-            if (file_exists($envExamplePath)) {
-                copy($envExamplePath, $envPath);
-                $msgArr[] = "Arquivo .env criado com sucesso.";
-            } else {
-                throw new Exception("Arquivo .env.example não encontrado.");
+            if (!file_exists($envExamplePath)) {
+                throw new RuntimeException('Arquivo .env.example nao encontrado.');
             }
-        } else {
-            $msgArr[] = "Arquivo .env já existe, pulando criação.";
+
+            if (!copy($envExamplePath, $envPath)) {
+                throw new RuntimeException('Falha ao criar o arquivo .env.');
+            }
+
+            $messages[] = 'Arquivo .env criado com sucesso.';
         }
 
-        // Atualizar arquivo .env
         $envContent = file_get_contents($envPath);
-        $envContent = setEnvValue($envContent, "DB_HOST", $dbHost);
-        $envContent = setEnvValue($envContent, "DB_USER", $dbUser);
-        $envContent = setEnvValue($envContent, "DB_PASSWORD", $dbPassword);
-        $envContent = setEnvValue($envContent, "DB_NAME", $dbName);
-
-        // Definir ambiente e configurações de autenticação
-        $envContent = setEnvValue($envContent, "APP_ENV", $appEnv);
-
-        // Se em production, a autenticação é obrigatória
-        if ($appEnv === 'production') {
-            $apiAuthEnabled = true;
-            if ($apiAuthToken === '') {
-                // Gera token seguro automaticamente
-                $apiAuthToken = bin2hex(random_bytes(16));
-                $tokenGenerated = true;
-                $msgArr[] = "Token da API gerado automaticamente.";
-            }
+        if ($envContent === false) {
+            throw new RuntimeException('Falha ao ler o arquivo .env.');
         }
 
-        $envContent = setEnvValue($envContent, "API_AUTH_ENABLED", $apiAuthEnabled ? 'true' : 'false');
-        if ($apiAuthToken !== '') {
-            $envContent = setEnvValue($envContent, "API_AUTH_TOKEN", $apiAuthToken);
+        $envContent = set_env_value($envContent, 'DB_HOST', $dbHost);
+        $envContent = set_env_value($envContent, 'DB_PORT', $dbPort);
+        $envContent = set_env_value($envContent, 'DB_USER', $dbUser);
+        $envContent = set_env_value($envContent, 'DB_PASSWORD', $dbPassword);
+        $envContent = set_env_value($envContent, 'DB_NAME', $dbName);
+
+        if (file_put_contents($envPath, $envContent) === false) {
+            throw new RuntimeException('Falha ao atualizar o arquivo .env.');
         }
 
-        file_put_contents($envPath, $envContent);
-        $msgArr[] = "Arquivo .env atualizado com sucesso.";
+        $messages[] = 'Arquivo .env atualizado com sucesso.';
 
-        // Função auxiliar para executar comandos shell com verificação de retorno
-        $runCommand = function(string $cmd): array {
-            exec($cmd . " 2>&1", $out, $ret);
-            return ['output' => implode("\n", $out), 'return' => $ret];
-        };
+        $serverPdo = new PDO(
+            "mysql:host={$dbHost};port={$dbPort};charset=utf8mb4",
+            $dbUser,
+            $dbPassword,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
 
-        // Instalar dependências do Composer (opcional)
-        $checkComposer = $runCommand("composer --version");
-        if ($checkComposer['return'] === 0) {
-            // Composer disponível, tenta instalar dependências, mas não falha o processo se der erro
-            $res = $runCommand("composer install --no-interaction --prefer-dist");
-            if ($res['return'] === 0) {
-                $msgArr[] = "Dependências do Composer instaladas.";
-            } else {
-                // Registrar aviso mas continuar
-                $msgArr[] = "Aviso: Falha ao executar 'composer install' (continua a instalação): <pre style=\"white-space:pre-wrap;\">" . htmlspecialchars($res['output']) . "</pre>";
-            }
-        } else {
-            $msgArr[] = "Composer não encontrado no PATH; pulando instalação de dependências (execução manual é opcional).";
-        }
-
-        // Limpar banco de dados se solicitado
         if ($clearDb) {
-            $dropCommand = "mysql -h" . escapeshellarg($dbHost) . " -u" . escapeshellarg($dbUser) . ($dbPassword !== "" ? " -p" . escapeshellarg($dbPassword) : "") . " -e " . escapeshellarg("DROP DATABASE IF EXISTS `$dbName`;");
-            $res = $runCommand($dropCommand);
-            if ($res['return'] !== 0) {
-                throw new Exception("Falha ao limpar banco de dados: " . $res['output']);
-            }
-            $msgArr[] = "Banco de dados anterior removido.";
+            $serverPdo->exec("DROP DATABASE IF EXISTS `{$dbName}`");
+            $messages[] = 'Banco de dados anterior removido.';
         }
 
-        // Verificar se o arquivo SQL existe
-        if (!file_exists($sqlPath)) {
-            throw new Exception("Arquivo SQL não encontrado em: $sqlPath");
-        }
+        $serverPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $messages[] = 'Banco de dados criado com sucesso.';
 
-        // Tentar usar o banco; se não for possível, tentar criar e usar
-        $useCommand = "mysql -h" . escapeshellarg($dbHost) . " -u" . escapeshellarg($dbUser) . ($dbPassword !== "" ? " -p" . escapeshellarg($dbPassword) : "") . " -e " . escapeshellarg("USE `$dbName`;");
-        $res = $runCommand($useCommand);
-        if ($res['return'] !== 0) {
-            // criar banco de dados
-            $createCommand = "mysql -h" . escapeshellarg($dbHost) . " -u" . escapeshellarg($dbUser) . ($dbPassword !== "" ? " -p" . escapeshellarg($dbPassword) : "") . " -e " . escapeshellarg("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-            $resCreate = $runCommand($createCommand);
-            if ($resCreate['return'] !== 0) {
-                throw new Exception("Falha ao criar banco de dados: " . $resCreate['output']);
-            }
-            $msgArr[] = "Banco de dados criado.";
+        $databasePdo = new PDO(
+            "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4",
+            $dbUser,
+            $dbPassword,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
 
-            // tentar usar novamente
-            $res = $runCommand($useCommand);
-            if ($res['return'] !== 0) {
-                throw new Exception("Banco de dados '$dbName' não pôde ser usado: " . $res['output']);
-            }
-        } else {
-            $msgArr[] = "Banco de dados existe e está acessível.";
-        }
+        import_sql($databasePdo, $sqlPath);
+        $messages[] = 'Estrutura importada com sucesso.';
+        $messages[] = 'Projeto pronto para uso.';
+        $messages[] = 'Por seguranca, remova a pasta scripts/ apos a instalacao.';
 
-        // Importar dados (garantindo a codificação UTF-8)
-        $sqlFullPath = realpath($sqlPath) ?: $sqlPath;
-        $importCommand = "mysql --default-character-set=utf8mb4 -h" . escapeshellarg($dbHost) . " -u" . escapeshellarg($dbUser) . ($dbPassword !== "" ? " -p" . escapeshellarg($dbPassword) : "") . " " . escapeshellarg($dbName) . " < " . escapeshellarg($sqlFullPath);
-        $res = $runCommand($importCommand);
-        if ($res['return'] !== 0) {
-            throw new Exception("Falha ao importar dados do banco: " . $res['output']);
-        }
-        $msgArr[] = "Dados importados com sucesso.";
-
+        $message = implode('<br>', array_map('htmlspecialchars', $messages));
         $success = true;
-        $msgArr[] = "<strong>Instalação concluída com sucesso!</strong>";
-
-        // Se um token foi gerado automaticamente, informe-o ao final de forma destacada
-        if ($tokenGenerated) {
-            $msgArr[] = "<div class=\"warning\"><strong>Token da API gerado:</strong> <code>$apiAuthToken</code><br>Guarde este token em local seguro — ele não será exibido novamente.</div>";
-        }
-
-        $msgArr[] = "<div style=\"background-color: #fff3cd; color: #856404; padding: 10px; margin: 10px 0; border-radius: 5px;\"><strong>ATENÇÃO:</strong> Por segurança, remova a pasta <code>scripts/</code> após a instalação.<br>Esta pasta contém ferramentas de instalação que não devem permanecer no servidor de produção.</div>";
-        $msgArr[] = "Próximos passos:";
-        $msgArr[] = "1. Inicie o servidor PHP: php -S localhost:8000 -t public/";
-        $msgArr[] = "2. Teste a API: curl http://localhost:8000/health";
-        $msgArr[] = "3. Consulte a documentação: API_DOCUMENTATION.md";
-
-        $message = implode("<br>", $msgArr);
-    } catch (Exception $e) {
-        $success = false;
-        $message = "Erro durante a instalação: " . htmlspecialchars($e->getMessage());
+    } catch (Throwable $e) {
+        $message = 'Erro durante a instalacao: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -192,150 +145,141 @@ if ($wasSubmitted) {
     <title>Instalador LicenseHub</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #f4f1ea;
+            color: #1f2937;
+        }
+
+        main {
+            max-width: 720px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 40px 20px;
         }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .card {
+            background: #fffdf8;
+            border: 1px solid #ddd3c4;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 18px 35px rgba(31, 41, 55, 0.08);
         }
+
         h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
+            margin-top: 0;
+            font-size: 2rem;
         }
-        .form-group {
-            margin-bottom: 20px;
+
+        p {
+            color: #5b6471;
+            line-height: 1.6;
         }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 6px;
+            font-weight: 600;
         }
-        input[type="text"], input[type="password"] {
+
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+            padding: 11px 12px;
+            border: 1px solid #cfc5b6;
+            border-radius: 10px;
+            font-size: 1rem;
             box-sizing: border-box;
         }
-        .checkbox-group {
+
+        .checkbox {
             display: flex;
             align-items: center;
+            gap: 10px;
             margin: 20px 0;
         }
-        .checkbox-group input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-        .checkbox-group label {
-            margin: 0;
-            font-weight: normal;
-        }
+
         button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
             width: 100%;
+            border: 0;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            background: #0f766e;
+            color: #fff;
+            cursor: pointer;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
+
         .message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 4px;
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .message.success {
+            background: #dff3ef;
+            color: #0f5132;
         }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+
+        .message.error {
+            background: #fde2e1;
+            color: #8a1c1c;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Instalador LicenseHub</h1>
+    <main>
+        <section class="card">
+            <h1>Instalador LicenseHub</h1>
+            <p>Este instalador prepara o arquivo <code>.env</code> e importa o banco para a versao simplificada do projeto.</p>
 
-
-        <?php if ($wasSubmitted && !is_null($message)): ?>
-            <div class="message <?php echo $success ? 'success' : 'error'; ?>">
-                <?php echo $message; ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (!$success): ?>
-            <form method="POST">
-                <div class="form-group">
-                    <label for="db_host">Host do Banco de Dados:</label>
-                    <input type="text" id="db_host" name="db_host" value="localhost" required>
+            <?php if ($wasSubmitted && $message !== null): ?>
+                <div class="message <?= $success ? 'success' : 'error' ?>">
+                    <?= $message ?>
                 </div>
+            <?php endif; ?>
 
-                <div class="form-group">
-                    <label for="db_user">Usuário do Banco de Dados:</label>
-                    <input type="text" id="db_user" name="db_user" value="root" required>
-                </div>
+            <?php if (!$success): ?>
+                <form method="post">
+                    <div class="field">
+                        <label for="db_host">Host do banco</label>
+                        <input type="text" id="db_host" name="db_host" value="localhost" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="db_password">Senha do Banco de Dados:</label>
-                    <input type="password" id="db_password" value="root" name="db_password">
-                </div>
+                    <div class="field">
+                        <label for="db_port">Porta</label>
+                        <input type="text" id="db_port" name="db_port" value="3306" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="db_name">Nome do Banco de Dados:</label>
-                    <input type="text" id="db_name" name="db_name" value="licensehub" required>
-                </div>
+                    <div class="field">
+                        <label for="db_user">Usuario</label>
+                        <input type="text" id="db_user" name="db_user" value="root" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="app_env">Ambiente:</label>
-                    <select id="app_env" name="app_env">
-                        <option value="development">development</option>
-                        <option value="production">production</option>
-                    </select>
-                    <small>Escolha <code>production</code> para ativar autenticação obrigatória.</small>
-                </div>
+                    <div class="field">
+                        <label for="db_password">Senha</label>
+                        <input type="password" id="db_password" name="db_password">
+                    </div>
 
-                <div class="form-group">
-                    <label for="api_auth_token">Token de Autenticação da API (opcional):</label>
-                    <input type="text" id="api_auth_token" name="api_auth_token" placeholder="Deixe vazio para gerar um token automático em production">
-                </div>
+                    <div class="field">
+                        <label for="db_name">Banco</label>
+                        <input type="text" id="db_name" name="db_name" value="licensehub" required>
+                    </div>
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="api_auth_enabled" name="api_auth_enabled">
-                    <label for="api_auth_enabled">Habilitar autenticação da API (obrigatório em production)</label>
-                </div>
+                    <label class="checkbox" for="clear_db">
+                        <input type="checkbox" id="clear_db" name="clear_db" checked>
+                        <span>Apagar o banco atual antes de importar</span>
+                    </label>
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="clear_db" name="clear_db" checked>
-                    <label for="clear_db">Limpar banco de dados existente antes da instalação</label>
-                </div>
-
-                <button type="submit">Instalar LicenseHub</button>
-            </form>
-        <?php endif; ?>
-    </div>
+                    <button type="submit">Instalar</button>
+                </form>
+            <?php endif; ?>
+        </section>
+    </main>
 </body>
 </html>
-
-

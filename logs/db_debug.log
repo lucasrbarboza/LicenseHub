@@ -1,0 +1,36 @@
+[2026-02-06T16:32:06+00:00] DB debug start
+SAPI: cli-server
+php_ini: C:\UniServerZ\core\php82\php-cli.ini
+extensions_has_pdo: yes
+extensions_has_pdo_mysql: yes
+pdo_drivers: mysql
+ENV_DB: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root"}
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+
+[2026-02-06T16:32:32+00:00] DB debug start
+SAPI: cli-server
+php_ini: C:\Programas\UniServerZ\core\php82\php-cli.ini
+extensions_has_pdo: yes
+extensions_has_pdo_mysql: yes
+pdo_drivers: mysql
+ENV_DB: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root"}
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+
+[2026-02-06T16:32:48+00:00] DB debug start
+SAPI: cli-server
+php_ini: C:\Programas\UniServerZ\core\php82\php-cli.ini
+extensions_has_pdo: yes
+extensions_has_pdo_mysql: yes
+pdo_drivers: mysql
+ENV_DB: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root"}
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+
+[2026-02-06T16:33:38+00:00] DB debug start
+SAPI: cli-server
+php_ini: C:\Programas\UniServerZ\core\php82\php-cli.ini
+extensions_has_pdo: yes
+extensions_has_pdo_mysql: yes
+pdo_drivers: mysql
+ENV_DB: {"DB_HOST":"localhost","DB_PORT":"3306","DB_NAME":"licensehub","DB_USER":"root"}
+DSN: mysql:host=localhost;port=3306;dbname=licensehub;charset=utf8mb4
+
